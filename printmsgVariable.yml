@@ -1,0 +1,11 @@
+
+
+---
+ - name: Print a message
+   hosts: all
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: msg="The hostname is {{inventory_hostname}}"
+      

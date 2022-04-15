@@ -1,0 +1,14 @@
+
+---
+ - name: Print a custome variables value
+   hosts: all
+   vars:
+    name: sonal
+    my_num: 00100028
+   gather_facts: false
+   tasks:
+    - name: print message with custom value
+      debug:
+       msg:
+        - "The value of name is {{name}}"
+        - "The value of my_num is {{my_num}}"

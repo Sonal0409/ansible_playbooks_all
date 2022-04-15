@@ -1,0 +1,15 @@
+
+---
+- hosts: all
+  tasks:
+  - name: find os distribution
+    shell: "cat /etc/os-release"
+    register: os_dist
+  - name: find the os name
+    shell: "uname"
+    register: os_name
+  - name: display the values
+    debug:
+     msg: 
+      - "the os distribution is {{os_dist}}"
+      - "the os name is {{os_name}}"

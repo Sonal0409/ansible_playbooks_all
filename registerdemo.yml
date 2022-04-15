@@ -1,0 +1,16 @@
+
+---
+ - hosts: all
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version
+   - name: store the value of output in a new variable
+     set_fact:
+      new_var1: "{{bash_version.stdout.split('\n')[0]}}"
+   - name: print the variable value
+     debug:
+      var: new_var1

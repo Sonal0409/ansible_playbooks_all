@@ -1,0 +1,11 @@
+
+
+pkgs:
+ - docker
+ - git
+ - wget
+
+pkgs2:
+ linux: httpd
+ ubuntu: apache2
+
