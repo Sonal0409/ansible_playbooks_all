@@ -1,0 +1,148 @@
+Template Module:
+
+****************
+For example:
+
+ we will have a folder with name as templates in our current directory  and jinja2 file in it :
+
+./templates/my_app.conf.j2 
+
+local_ip = {{ ansible_default_ipv4["address"] }}
+local_user = {{ ansible_user }}
+
+
+
+Running the following task in playbook.yml:
+
+- name: install my_app configuration file from template
+  template:
+    src: my_app.conf.j2
+    dest: tmp/my_app.conf
+
+Produces the following on my Ubuntu 18.04 test host:
+
+local_ip = 10.1.11.72
+local_user = ubuntu
+
+And the following on Centos host:
+
+local_ip = 10.1.11.62
+local_user = centos
+
+
+________________________
+
+
+example 1:
+
+cd /etc/ansible
+
+sudo mkdir templates
+
+cdWelcome to {{ ansible_facts.hostname }}
+(IP Address: {{ ansible_facts.default_ipv4.address }})
+
+Access is restricted; if you are not authorized to use it 
+please logout from this system
+
+If you have any issues, please contact {{ system_admin_email }}.
+Phone: {{ system_admin_phone | default('1800 1111 2222') }}
+
+-------------------------------------
+This message is configured by Ansible
+-------------------------------------
+
+
+****************
+
+playbook
+
+sudo vim templatedemo.yml
+
+- name: Using Jinja2
+  hosts: 172.31.21.30
+  become: yes
+  vars:
+    system_admin_email: admin@lab.local
+    #system_admin_phone: '1800 0000 0000'
+  tasks:
+    - name: Deploy motd
+      template:
+        dest: /etc/motd
+        src: templates/motd.j2
+
+
+**************************
+
+
+Playbook2: deploy index.html file on httpd
+
+
+cd templates
+
+create a jinja2 file
+
+$ sudo vim placeholder.html.j2
+
+<html>
+<head>
+ <title>{{ page_title}} </title>
+</head>
+<body>
+ <h1> {{page_title}} </h1>
+ <p> {{page_description}} </p>
+</body>
+</html>
+
+
+Create a playbook
+
+sudo vim templatedemo2.yml
+
+- hosts: 172.31.21.30
+  become: yes
+  become_user: root
+  vars:
+   page_title: "placeholder"
+   page_description: "This is my placeholder page example"
+  tasks:
+    - name: install httpd
+      yum: name=httpd state=present
+    - name: start httpd
+      service: name=httpd state=started
+    - name: apply page template
+      ansible.builtin.template:
+       src: templates/placeholder.html.j2
+       dest: /var/www/html/index.html 
+    - name: restart https
+      service: name=httpd state=restarted
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
