@@ -1,0 +1,20 @@
+
+
+---
+ - hosts: localhost
+   become: true
+   become_user: root
+   gather_facts: false
+   vars_files:
+    - myvariables.yml
+   tasks:
+   - name: read package value from list
+     debug: msg="the package is {{pkgs[0]}}"
+   - name: install package
+     yum: name={{pkgs[0]}} state=absent
+   - name: read package value as maps
+     debug: msg="the package is {{pkgs2.linux}}"
+   - name: Install package
+     yum: name={{pkgs2.linux}} state=absent
+
+

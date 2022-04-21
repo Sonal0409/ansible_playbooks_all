@@ -1,0 +1,19 @@
+
+- hosts: 172.31.21.30
+  become: true
+  become_user: root
+  vars:
+   src_url: https://tomcat.apache.org/tomcat-7.0-doc/appdev/sample/sample.war
+   dest_path: /usr/share/tomcat/webapps
+  tasks:
+  - name: Install tomcat
+    yum: name=tomcat state=present
+  - name: Start tomcat service
+    service: name=tomcat state=started
+  - name: deploy the war file on tomcat server
+    get_url:
+     url={{src_url}}
+     dest={{dest_path}}
+  - name: restart tomcat server
+    service: name=tomcat state=restarted
+

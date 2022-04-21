@@ -1,0 +1,15 @@
+
+- hosts: localhost
+  tasks:
+  - name: execute command
+    command: ls /home12cvfg
+    register: var_myhome
+    ignore_errors: yes
+  - name: print the variable
+    debug: var=var_myhome
+  - name: execute command
+    command: ls /tmp
+    register: var_mytmp
+  - name: print the value
+    debug: var=var_mytmp
+

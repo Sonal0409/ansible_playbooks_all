@@ -1,0 +1,18 @@
+
+
+---
+- name: Setup of docker for ansible
+  hosts: localhost
+  become: yes
+  tasks:
+   - name: Install python-pip
+     yum:
+      name: python-pip
+      state: absent
+   - name: Install docker-py,download docker,install it
+     shell: "{{item}}"
+     with_items:
+      - pip install docker-py
+      - curl -fsSL https://get.docker.com -o get-docker.sh
+      - sh get-docker.sh
+

@@ -1,0 +1,13 @@
+
+---
+- name: Simple playbook to install httpd
+  hosts: all
+  gather_facts: true
+  tasks:
+  - name: Installing httpd using yum
+    yum: name=httpd state=present
+    when: ansible_distribution != "Ubuntu"
+  - name: install apache2 using apt
+    apt: name=apache2 state=present
+    when: ansible_distribution == "Ubuntu"
+

@@ -1,0 +1,21 @@
+
+---
+- name: Creating users and creating files/dir
+  hosts: localhost:172.31.21.30
+  become: yes
+  tasks:
+   - name: User creation
+     user:
+      name: "{{item.a}}"
+      home: "{{item.b}}"
+     loop:
+      - {a: Bob,b: /tmp/bob}
+      - {a: Ravi,b: /tmp/Ravi}
+   - name: Creating files/dirs in user home dir
+     file:
+      name: "{{item.d}}"
+      state: "{{item.e}}"
+     loop:
+      - {d: /tmp/bob/file1,e: touch}
+      - {d: /tmp/Ravi/dir1,e: directory}
+

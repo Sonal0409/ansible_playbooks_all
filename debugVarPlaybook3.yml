@@ -1,0 +1,11 @@
+
+ - name: Print a message
+   hosts: localhost:172.31.21.30
+   tasks:
+    - name: print any message and variable value
+      debug:
+       msg: "The hostname is {{inventory_hostname}}"
+    - name: print variable value using var parameter
+      debug:
+       var: inventory_hostname
+

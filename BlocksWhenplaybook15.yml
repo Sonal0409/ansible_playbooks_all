@@ -1,0 +1,30 @@
+
+---
+  - hosts: localhost
+    gather_facts: true
+    tasks:
+      - block:
+        - name: Installing htttpd for RedHat os family
+          yum:
+            name: httpd
+            state: present
+        - name: starting httpd for RedHat os family
+          service:
+            name: httpd
+            state: started
+        when: ansible_os_family=="RedHat"
+        become: yes
+      - block:
+        - name: Installing apache2 for Debian os family
+          apt:
+            name: apache2
+            state: present
+        - name: starting apache2 for Debian os family
+          service:
+            name: apache2
+            state: started
+        when: ansible_os_family=="Debian"
+        become: yes
+      - debug:
+          msg: "Succesfully completed all tasks"
+

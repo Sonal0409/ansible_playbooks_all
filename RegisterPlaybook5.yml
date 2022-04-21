@@ -1,0 +1,15 @@
+
+
+---
+ - hosts: localhost:172.31.21.30
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version
+   - name: print output form variable
+     debug:
+      var: bash_version.stdout.split('\n')[0]
+

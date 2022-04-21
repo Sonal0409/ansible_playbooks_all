@@ -1,0 +1,16 @@
+
+- hosts: localhost
+  tasks:
+  - block:
+     - name: execute command
+       command: ls /home1234e
+       register: var_myhome
+     - name: execute command
+       command: ls /tmp
+       register: var_mytmp
+    ignore_errors: yes
+  - name: print the value
+    debug: var=var_myhome
+  - name: print value2
+    debug: var=var_mytmp
+
