@@ -1,0 +1,181 @@
+Example1: tomcat yaml, show create variable and assign value
+
+
+Example 2: explain debug module
+
+1. Print any message using playbooks
+
+We will use module -> debug
+
+this module will print statements during execution and can be usefull for debugging variables and expression
+
+Debug moduel excepts 3 parameters:
+
+ > msg
+ > var
+ > verbosity
+
+vim printmessage.yml
+
+---
+ - name: Print a message
+   hosts: webserver
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: msg="Welcome to ansible playbooks"
+
+:wq!
+
+Example 3: Ansible special variables
+
+Print values of ansible speacial variables using debug module
+
+vim printmessage.yml
+
+---
+ - name: Print a message
+   hosts: webserver
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: 
+       msg: "The hostname is {{inventory_hostname}}"
+       var: inventory_hostname
+
+:wq!
+
+when using variable value with message give {{}}
+when using only var parameter, no need to give {{}} ==> it directly take it
+
+Example 4:
+**********
+
+playbook to understand usage of register  & set_fact
+
+
+Whenever a module in ansible returns a value, it can be stored in a variable using REGISTER module
+
+The registered value then can be used with conditional statements
+
+
+Write playbook thet will get bash version from playbook
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+
+:wq!
+
+execute plabook, but you will not see any changes
+
+it has exeucted the commands but by default you cannaot see it, you need to store the output
+
+go to the playbook again
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version                ==> this store output of module shell, lets print it using debug module
+   - name: print the variable value
+     debug:
+      var: bash_version
+
+:wq!
+
+this will return value of vairbale as maps==> keys & values
+
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version              
+   - name: print the variable value
+     debug:
+      var: bash_version.stdout.split("\n")
+
+:wq!
+
+Open playbook and add [0] now
+you can print only 1 output values , no keys of the output
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version              
+   - name: print the variable value
+     debug:
+      var: bash_version.stdout.split("\n")[0]  ==> value at 0th index
+
+:wq!
+
+
+Example 4:
+
+Store value of one variable in another variable
+
+Store the registered varibale value into another variable using set_fact module
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version
+   - name: create a new varibale and save value
+     set_fact: 
+      new_var1: "{{bash_version.stdout.split('\n')[0]}}"       
+   - name: print the variable value
+     debug:
+      var: new-var1  
+
+:wq!
+
+*************
+
+One more example of debug and register module
+
+---
+- hosts: all
+  tasks:
+  - name: find os distribution
+    shell: "cat /etc/os-release"
+    register: os_dist
+  - name: find the os name
+    shell: "uname"
+    register: os_name
+  - name: display the values
+    debug:
+     - msg: "the os distribution is {{os_dist}}"
+     - msh: "the os name is {{os_name}}"
+
+
+
+
+
+
