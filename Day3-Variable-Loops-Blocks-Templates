@@ -1,0 +1,571 @@
+First show the debug module to print a message:
+
+1. Print any message using playbooks
+
+We will use module -> debug
+
+this module will print statements during execution and can be usefull for debugging variables and expression
+
+Debug moduel excepts 3 parameters:
+
+ > msg
+ > var
+ > verbosity
+
+vim printmessage.yml
+
+---
+ - name: Print a message
+   hosts: webserver
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: msg="Welcome to ansible playbooks"
+
+:wq!
+
+
+Ansible Variables:
+Variables are used to store the value
+
+There are 2 types of variables:
+Ansible variables special variables or magic variables
+Special variables have value set by ansible and cannot be changed by user.
+These variables cannot be set directly by the user; Ansible will always override them to reflect internal state.
+Custom Variables defined by user
+Created by user and values are given by user in playbook or at runtime
+
+Lets see an example with special Variables using Debug Module
+
+vim printmessage.yml
+---
+ - name: Print a message
+   hosts: webserver
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: msg="The hostname is {{inventory_hostname}}"
+
+Now add the Var parameter also , as shown below
+vim printmessage.yml
+---
+ - name: Print a message
+   hosts: webserver
+   become: true
+   become_user: root
+   tasks:
+    - name: print any message
+      debug: 
+       msg: "The hostname is {{inventory_hostname}}"
+       var: inventory_hostname
+
+with msg you have to give parameter in {{}}
+with var , no need to give {{}}, only variable name
+both will print value
+Custom variables:
+
+A variable name can only include letters, numbers, and underscores. Python keywords or playbook keywords are not valid variable names. A variable name cannot begin with a number.
+Variable names can begin with an underscore. In many programming languages, variables that begin with an underscore are private. This is not true in Ansible. Variables that begin with an underscore are treated exactly the same as any other variable.
+Example:
+Show example of tomcat playbook
+Vars section and value
+
+
+REGISTER MODULE
+You can also register the value of a variable, i.e. store the output of a variable 
+Using register module
+
+Example:
+In below playbook, command is executed but you will not see the output at runtime:
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+
+:wq!
+
+So we need to use register module to store the output in a variable
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version           
+   - name: print the variable value
+     debug:
+      var: bash_version
+
+this will return value of variable as maps==> keys & values
+this will return lots of data
+lets add some python scripting to filter the data and fetch only stdout value
+fetch the value of stdout key in the variable and fetch the value at 0th index
+here bash_version  variable
+std.out  key
+[0] value index
+
+
+---
+ - hosts: webserver
+   become: true
+   become_user: root
+   gather_facts: false
+   tasks:
+   - name: display bash version
+     shell: "bash --version"
+     register: bash_version              
+   - name: print the variable value
+     debug:
+      var: bash_version.stdout.split("\n")[0]  
+
+:wq!
+
+
+One more example of debug and register module
+
+---
+- hosts: all
+  tasks:
+  - name: find os distribution
+    shell: "cat /etc/os-release"
+    register: os_dist
+  - name: find the os name
+    shell: "uname"
+    register: os_name
+  - name: display the values
+    debug:
+     - msg: "the os distribution is {{os_dist}}"
+     - msh: "the os name is {{os_name}}"
+
+
+
+Read the variable value at runtime by giving vars_prompt option
+to install packages
+---
+ - hosts: localhost
+   become: true
+   become_user: root
+   gather_facts: false
+   vars_prompt:
+   - name: pkg_name1
+     prompt: Enter your package Name
+     private: false
+   - name: service_name1
+     prompt: Enter the service to start
+     private: false
+   tasks:
+   - name: Install a package
+     yum: name={{pkg_name1}} state=present
+   - name: Start a service
+     service: name={{service_name1}} state=started
+
+
+
+List variables
+A list variable combines a variable name with multiple values. The multiple values can be stored as an itemized list or in square brackets [], separated with commas.
+Defining variables as lists
+You can define variables with multiple values using YAML lists. For example:
+region:
+  - northeast
+  - southeast
+  - midwest
+Referencing list variables
+When you use variables defined as a list (also called an array), you can use individual, specific fields from that list. The first item in a list is item 0, the second item is item 1. For example:
+region: "{{ region[0] }}"
+The value of this expression would be “northeast”.
+Dictionary variables
+A dictionary stores the data in key-value pairs. Usually, dictionaries are used to store related data, such as the information contained in an ID or a user profile.
+Defining variables as key:value dictionaries
+You can define more complex variables using YAML dictionaries. A YAML dictionary maps keys to values. For example:
+foo:
+  field1: one
+  field2: two
+Referencing key:value dictionary variables
+When you use variables defined as a key:value dictionary (also called a hash), you can use individual, specific fields from that dictionary using either bracket notation or dot notation:
+foo['field1']
+foo.field1
+
+
+Example:
+Defining variables in a separate file and calling them in a playbook
+
+Read variable values from a yaml files
+create a file:
+sudo vim myvariables.yml
+
+pkgs:
+ - docker
+ - git
+ - wget
+
+pkgs2:
+ linux: httpd
+ ubuntu: apache2
+
+
+sudo vim variablefilesDemo.yml
+---
+ - hosts: localhost
+   become: true
+   become_user: root
+   gather_facts: false
+   vars_files:
+   - myvariables.yml
+   tasks:
+   - name: read package value from list
+     debug: msg="the package is {{pkgs[0]}}
+   - name: install package
+     yum: name={{pkgs[0]}} state=present
+   - name: read package value as maps
+     debug: msg="the package is {{pkgs2.linux}}
+   - name: Install package
+     yum: name={{pkgs2.linux}} state=present
+
+
+
+
+Working with FACT_VARIABLES
+
+Working with fact variables in ansible
+
+if you will execute this adhoc command, it will give all the facts releated to your ansible host
+
+$ ansible all -m setup
+
+$ ansible all -m setup | grep ansible
+
+it will show all the variables that can used in ansible playbooks
+
+look for variable : ansible_system & ansible_distribution and use it in a playbook
+
+Use the variables in playbook
+
+
+---
+- hosts: all
+  tasks:
+   - name: print fact variable values
+     debug:
+      msg:
+       - " the os distribution is : {{ansible_distribution}}"
+       - " the os name is : {{ansible_system}}"
+       - " the os family is : {{ansible_os_family}}"
+
+It is very simple to work if we use ansible fact variables
+else we will have to write big playbook like
+
+
+Conditional Statements: 
+
+when
+failed_when
+changed_when
+
+when is conditional statement in ansible, it is like if condition
+
+
+---
+- name: Simple playbook to install httpd
+  hosts: all
+  gather_facts: true
+  tasks:
+  - name: Installing httpd using yum
+    yum: name=httpd state=present
+    when: ansible_distribution != "Ubuntu"
+ - name: install apache2 using apt
+   apt: name=apache2 state=present
+   when: ansible_distribution == "Ubuntu"
+
+  
+
+Loops:
+***
+************
+
+playbook with no loops:
+
+---
+  - hosts: localhost
+    gather_facts: false
+    become: yes
+    tasks:
+      - yum:
+         name: gettext-devel
+         state: present
+      - yum:
+         name: openssl-devel
+         state: present
+      - yum:
+         name: perl-CPAN
+         state: present
+      - yum:
+         name: perl-devel
+         state: present
+      - yum:
+         name: zlib-devel
+         state: present
+
+
+playbook with loop:
+
+---
+  - hosts: localhost
+    gather_facts: false
+    become: yes
+    tasks:
+      - yum:
+         name: "{{item}}"
+         state: absent
+        loop:
+          - gettext-devel
+          - openssl-devel
+          - perl-CPAN
+          - perl-devel
+          - zlib-devel
+
+
+
+Combination of variables & loops
+
+---
+- name: Creating users and creating files/dir
+  hosts: all
+  tasks:
+   - name: User creation
+     user:
+      name: "{{item.a}}"
+      password: "{{item.b}}"
+      home: "{{item.c}}"
+     with_items:
+      - {a: Bob,b: bob,c: /tmp/bob}
+      - {a: Ravi,b: ravi,c: /tmp/Ravi}
+   - name: Creating files/dirs in user home dir
+     file:
+      name: "{{item.d}}"
+      state: "{{item.e}}"
+     with_items:
+      - {d: /tmp/bob/file1,e: touch}
+      - {d: /tmp/Ravi/dir1,e: directory}
+
+Error Handling : ignore the errored out tasks
+
+
+When executing a playbook, if one task fails then playbook will stop execution and will not go further
+
+
+Lets consider this example:
+
+- hosts: localhost
+  tasks:
+  - name: execute command
+    command: ls /home
+    register: var_myhome
+  - name: print the variable
+    debug: var=var_myhome
+  - name: execute command
+    command: ls /tmp
+    register: var_mytmp
+  - name: print the value
+    debug: var=var_mytmp
+
+Execute.. it will work fine
+
+
+Now chnage task1 and give a wrong directory name
+
+- hosts: localhost
+  tasks:
+  - name: execute command
+    command: ls /home12cvfg
+    register: var_myhome
+  - name: print the variable
+    debug: var=var_myhome
+  - name: execute command
+    command: ls /tmp
+    register: var_mytmp
+  - name: print the value
+    debug: var=var_mytmp
+
+
+Execute playbook, task 1 will fail and playbook will stop, no task will be executed
+
+here, there is no dependency between the tasks, so even if one task fails.. others should be executed
+
+ansible can ignore the task that has been failed and go ahead and execute the rest of the tasks
+
+- hosts: localhost
+  tasks:
+  - name: execute command
+    command: ls /home12cvfg
+    register: var_myhome
+    ignore_errors: yes
+  - name: print the variable
+    debug: var=var_myhome
+  - name: execute command
+    command: ls /tmp
+    register: var_mytmp
+  - name: print the value
+    debug: var=var_mytmp
+
+
+
+
+Blocks in playbooks:
+
+We may not know which tasks may fail, so we may not know for which task should we write ignore_errors=yes or not
+
+So we can create a block in playbook.
+Block can be used to apply a condition or apply become=yes or ignore_errors=yes for multipel tasks
+
+
+- hosts: localhost
+  tasks:
+  - block:   
+     - name: execute command
+       command: ls /home1234e
+       register: var_myhome
+     - name: execute command
+       command: ls /tmp
+       register: var_mytmp
+    ignore_errors: yes
+  - name: print the value
+    debug: var=var_myhome
+  - name: print value2
+    debug: var=var_mytmp
+
+
+Block with when condition:
+
+---
+  - hosts: web_servers
+    gather_facts: true
+    tasks:
+      - block:
+        - name: Installing htttpd for RedHat os family
+          yum:
+            name: httpd
+            state: present
+        - name: starting httpd for RedHat os family
+          service:
+            name: httpd
+            state: started
+        when: ansible_os_family=="RedHat"
+        become: yes
+      - block:
+        - name: Installing apache2 for Debian os family
+          apt:
+            name: apache2
+            state: present
+        - name: starting apache2 for Debian os family
+          service:
+            name: apache2
+            state: started
+        when: ansible_os_family=="Debian"
+        become: yes
+      - debug:
+          msg: "Succesfully completed all tasks"
+
+
+
+Just like try & catch block in java.. we have block and rescue option & always options
+
+here if task in block fails.. it will be handled by rescue block(it will execute)
+and task under always block will always get executed
+
+---
+  - hosts: localhost
+    gather_facts: false
+    tasks:
+      - block:
+        - name: Finding files in /home/ansadmin/tomcat8
+          command: "ls /home/ansadmin/tomcat8"
+          register: tomcat8_out
+        rescue:
+          - debug:
+             msg: "The given path: /home/ansadmin/tomcat8 is not a validpath"
+        always:
+          - debug:
+             msg: "THis will always executes"
+
+
+
+The most powerful way to manage files in ansible is to template them. with this method, you can write a template configuration file
+ that is automatically customized for the managed host when the file is deployed, 
+using ansible variable and facts. 
+This can be easier to control and less error-prone. 
+Ansible uses the jinja2 templates for template files. 
+Jinja2 is a modern and designer-friendly templating language for Python frameworks.
+It is widely used for dynamic file generation based on its parameter.
+
+Jinja2
+Jinja2 is a very powerful and advanced templating language from python. 
+It is very fast, reliable and widely used to generate dynamic data. 
+It is a text-based template language and thus can be used to generate any markup as well as source code.
+
+In ansible, most of the time we would use templates to replace configuration files or place some other files such as scripting,
+ documents and other text files on the remote server. Let’s see more about how it fit in ansible.
+
+Jinja2 templates ar every useful whenever you want to do any configurations, configuring items in a configuration file
+main purpose is to update configurations on host machine
+
+
+
+template module:
+
+- hosts: localhost
+  become: yes
+  become_user: root
+  vars:
+   page_title: "placeholder"
+   page_description: "This is my placeholder page example"
+  tasks:
+    - name: install EPEL repo
+      yum: name=epel-release state=present
+    - name: install nginx
+      yum: name=httpd state=present
+    - name: start https
+      service: name=httpd state=started
+    - name: apply page template
+      ansible.builtin.template:
+       src: templates/placeholder.html.j2
+       dest: /var/www/html/index.html
+    - name: restart https
+      service: name=httpd state=restarted
+
+
+Create a directory as templates in etc ansible
+
+mkdir templates
+
+cd templates
+
+create jinja2 template
+
+vim placeholder.html.j2
+
+<html>
+<head>
+ <title>{{ page_title}} </title>
+</head>
+<body>
+ <h1> {{page_title}} </h1>
+ <p> {{page_description}} </p>
+</body>
+</html>
+
+:wq!
+
+
+Chnages will be applied to all the hosts
+
+
+
