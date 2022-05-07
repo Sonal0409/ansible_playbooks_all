@@ -1,0 +1,16 @@
+- hosts: localhost
+  become: true
+  tasks:
+  - name: Build an image
+    docker_image:
+     build:
+       path: /etc/ansible/myfiles
+     name: myimage
+     tag: v1
+     source: build
+  - name: Create container
+    docker_container:
+     name: myweb
+     image: myimage:v1
+     ports:
+     - "8282:8080"
