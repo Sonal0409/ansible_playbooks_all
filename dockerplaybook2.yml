@@ -1,0 +1,25 @@
+---
+- name: Working on tomcat
+  hosts: localhost
+  become: yes
+  tasks:
+   - name: Install docker
+     yum:
+      name: docker
+      state: present
+   - name: start docker
+     service:
+      name: docker
+      state: started
+   - name: Start tomcat as a container
+     docker_container:
+      image: nginx
+      name: mynginx
+   - name: Stop the tomcat container
+     docker_container:
+      name: mynginx
+      state: stopped
+   - name: Delete the container
+     docker_container:
+      name: mynginx
+      state: absent
